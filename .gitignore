@@ -11,7 +11,7 @@ build/
 .env
 .env.local
 
-
+prisma/migrations/
 
 .vscode/
 .idea/
