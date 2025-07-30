@@ -3,6 +3,11 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 
+import productRoutes from "./routes/productRoutes";
+import reviewRoutes from "./routes/reviewRoutes";
+import { AppError } from "./utils/errors";
+import { prisma } from "./prisma";
+
 dotenv.config();
 
 const app = express();
@@ -18,6 +23,39 @@ app.get("/health", (req, res) => {
     status: "OK",
     service: "Product Service",
     timestamp: new Date().toISOString(),
+  });
+});
+
+app.use("/api/products", productRoutes);
+app.use("/api/reviews", reviewRoutes);
+
+app.use(
+  (
+    error: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Error:", error);
+
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({
+        error: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal server error",
+      statusCode: 500,
+    });
+  }
+);
+
+app.use("*", (req, res) => {
+  res.status(404).json({
+    error: "Route not found",
+    statusCode: 404,
   });
 });
 
