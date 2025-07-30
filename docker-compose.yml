@@ -4,6 +4,8 @@ services:
     build: ./product-service
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -20,6 +22,8 @@ services:
   postgres:
     container_name: postgres
     image: postgres:15-alpine
+    env_file:
+      - .env
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -31,8 +35,36 @@ services:
     networks:
       - product-reviews-network
 
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management-alpine
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - product-reviews-network
+
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - product-reviews-network
+
 volumes:
   postgres_data:
+  rabbitmq_data:
+  redis_data:
 
 networks:
   product-reviews-network:

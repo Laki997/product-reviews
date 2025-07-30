@@ -12,6 +12,7 @@ model Product {
   name        String
   description String
   price       Decimal  @db.Decimal(10, 2)
+  averageRating Decimal? @db.Decimal(3, 2)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
