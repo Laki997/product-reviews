@@ -1,0 +1,23 @@
+{
+  "name": "review-processing-service",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "nodemon --exec ts-node src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "dotenv": "^16.3.1",
+    "prisma": "^5.7.1",
+    "@prisma/client": "^5.7.1",
+    "redis": "^4.6.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/amqplib": "^0.10.4",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

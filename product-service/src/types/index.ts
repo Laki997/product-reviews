@@ -57,3 +57,11 @@ export interface ProductWithAverageRating {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface ReviewEvent {
+  type: "REVIEW_CREATED" | "REVIEW_UPDATED" | "REVIEW_DELETED";
+  productId: string;
+  reviewId: string;
+  rating?: number | undefined;
+  timestamp: Date;
+}

@@ -11,11 +11,36 @@ services:
       - PORT=3000
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - postgres
+      # postgres:
+      #   condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - ./product-service:/app
       - /app/node_modules
       # - /app/dist
+    networks:
+      - product-reviews-network
+
+  review-processing-service:
+    container_name: review-processing-service
+    build: ./review-processing-service
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      # postgres:
+      #   condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      # redis:
+      #   condition: service_healthy
+    volumes:
+      - ./review-processing-service:/app
+      - /app/node_modules
+      - ./product-service/node_modules/.prisma:/app/node_modules/.prisma
     networks:
       - product-reviews-network
 
@@ -34,10 +59,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - product-reviews-network
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
 
   rabbitmq:
     container_name: rabbitmq
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3.9-management
     env_file:
       - .env
     ports:
@@ -50,6 +80,11 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - product-reviews-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     container_name: redis

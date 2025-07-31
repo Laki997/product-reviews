@@ -3,11 +3,14 @@ import { ReviewController } from "../controller/reviewController";
 import { ReviewService } from "../service/reviewService";
 import { ReviewRepository } from "../repository/reviewRepository";
 import { prisma } from "../prisma";
+import { EventPublisher } from "../events.ts/publisher";
+
+const eventPublisher = EventPublisher.getInstance();
 
 const router = Router();
 
 const reviewRepository = new ReviewRepository(prisma);
-const reviewService = new ReviewService(reviewRepository);
+const reviewService = new ReviewService(reviewRepository, eventPublisher);
 const reviewController = new ReviewController(reviewService);
 
 router.get("/product/:productId", reviewController.getProductReviews);

@@ -7,11 +7,14 @@ import productRoutes from "./routes/productRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import { AppError } from "./utils/errors";
 import { prisma } from "./prisma";
+import { EventPublisher } from "./events.ts/publisher";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const eventPublisher = EventPublisher.getInstance();
 
 app.use(helmet());
 app.use(cors());
@@ -59,8 +62,32 @@ app.use("*", (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Product Service running on port ${PORT}`);
-});
+async function startServer() {
+  try {
+    await eventPublisher.connect();
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Product Service running on port ${PORT}`);
+      console.log(
+        `📊 Health check available at http://localhost:${PORT}/health`
+      );
+      console.log(
+        `🛍️  Products API available at http://localhost:${PORT}/api/products`
+      );
+      console.log(
+        `⭐ Reviews API available at http://localhost:${PORT}/api/reviews`
+      );
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+// app.listen(PORT, () => {
+//   console.log(`🚀 Product Service running on port ${PORT}`);
+// });
 
 export default app;

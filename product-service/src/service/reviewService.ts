@@ -1,7 +1,12 @@
+import { EventPublisher } from "../events.ts/publisher";
 import { ReviewRepository } from "../repository/reviewRepository";
+import { ReviewEvent } from "../types";
 
 export class ReviewService {
-  constructor(private reviewRepository: ReviewRepository) {}
+  constructor(
+    private reviewRepository: ReviewRepository,
+    private eventPublisher: EventPublisher
+  ) {}
 
   async getProductReviews(productId: string) {
     return this.reviewRepository.findByProductId(productId);
@@ -18,7 +23,17 @@ export class ReviewService {
     reviewText: string;
     rating: number;
   }) {
-    return this.reviewRepository.create(data);
+    const review = await this.reviewRepository.create(data);
+
+    const event: ReviewEvent = {
+      type: "REVIEW_CREATED",
+      productId: data.productId,
+      reviewId: review.id,
+      rating: data.rating,
+      timestamp: new Date(),
+    };
+    await this.eventPublisher.publishReviewEvent(event);
+    return review;
   }
 
   async updateReview(
@@ -30,10 +45,32 @@ export class ReviewService {
       rating: number;
     }>
   ) {
-    return this.reviewRepository.update(id, data);
+    const review = await this.reviewRepository.update(id, data);
+
+    const event: ReviewEvent = {
+      type: "REVIEW_UPDATED",
+      productId: review.productId,
+      reviewId: review.id,
+      rating: data.rating || undefined,
+      timestamp: new Date(),
+    };
+
+    await this.eventPublisher.publishReviewEvent(event);
+    return review;
   }
 
   async deleteReview(id: string): Promise<void> {
+    const review = await this.reviewRepository.findById(id);
+
     await this.reviewRepository.delete(id);
+
+    const event: ReviewEvent = {
+      type: "REVIEW_DELETED",
+      productId: review.productId,
+      reviewId: review.id,
+      timestamp: new Date(),
+    };
+
+    await this.eventPublisher.publishReviewEvent(event);
   }
 }
