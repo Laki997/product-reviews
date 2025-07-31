@@ -19,11 +19,9 @@ export class EventConsumer {
 
       await this.channel.assertQueue(this.queueName, {
         durable: true,
-
-        arguments: { "x-prefetch-count": 1 },
       });
 
-      await this.channel.prefetch(1);
+      await this.channel.prefetch(4);
 
       console.log("✅ Connected to RabbitMQ");
 

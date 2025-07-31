@@ -23,7 +23,7 @@ services:
       - product-reviews-network
 
   review-processing-service:
-    container_name: review-processing-service
+    # container_name: review-processing-service
     build: ./review-processing-service
     environment:
       - NODE_ENV=development
@@ -43,6 +43,8 @@ services:
       - ./product-service/node_modules/.prisma:/app/node_modules/.prisma
     networks:
       - product-reviews-network
+    deploy:
+      replicas: 2
 
   postgres:
     container_name: postgres
