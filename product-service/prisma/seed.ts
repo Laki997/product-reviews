@@ -112,6 +112,16 @@ async function main() {
 
   console.log(`✅ Created ${reviews.length} reviews`);
 
+  console.log("📊 Calculating average ratings...");
+
+  for (const product of products) {
+    const averageRating = await calculateAverageRating(product.id);
+    await updateProductAverageRating(product.id, averageRating);
+    console.log(
+      `✅ Updated average rating for ${product.name}: ${averageRating}`
+    );
+  }
+
   const productCount = await prisma.product.count();
   const reviewCount = await prisma.review.count();
 
@@ -123,6 +133,26 @@ async function main() {
   );
 
   console.log("\n🎉 Seeding completed successfully!");
+}
+
+async function calculateAverageRating(
+  productId: string
+): Promise<number | null> {
+  const result = await prisma.review.aggregate({
+    where: { productId },
+    _avg: { rating: true },
+  });
+  return result._avg.rating;
+}
+
+async function updateProductAverageRating(
+  productId: string,
+  averageRating: number | null
+) {
+  await prisma.product.update({
+    where: { id: productId },
+    data: { averageRating },
+  });
 }
 
 function getRandomFirstName(): string {

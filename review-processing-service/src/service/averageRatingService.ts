@@ -25,6 +25,8 @@ export class AverageRatingService {
 
       await this.updateReviewsCache(event.productId);
 
+      await this.invalidateAllProductsCache();
+
       console.log(
         `📊 Updated average rating for product ${event.productId}: ${averageRating}`
       );
@@ -82,5 +84,35 @@ export class AverageRatingService {
     });
 
     await this.redis.setEx(cacheKey, 1800, JSON.stringify(reviews));
+  }
+
+  private async invalidateAllProductsCache() {
+    try {
+      const cacheKey = "products:all";
+
+      const products = await this.prisma.product.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+
+      const productsWithRatings = await Promise.all(
+        products.map(async (product) => {
+          const averageRating = await this.calculateAverageRating(product.id);
+          return {
+            ...product,
+            price: Number(product.price),
+            averageRating,
+          };
+        })
+      );
+
+      await this.redis.setEx(
+        cacheKey,
+        900,
+        JSON.stringify(productsWithRatings)
+      );
+      console.log("💾 Updated 'all products' cache");
+    } catch (error) {
+      console.error("❌ Error invalidating all products cache:", error);
+    }
   }
 }
