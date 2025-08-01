@@ -2,6 +2,18 @@
 
 Architecture for managing products and reviews with real-time average rating calculations and intelligent caching.
 
+## My thoughts
+
+This application was fun to create. I think it covers a lot of stuff for such small app, we touched db, orm for database, server, docker, caching, brokers, etc..I used express because its easy to setup, postgres and prisma for db stuff as I usualy do, redis for caching and rabitmq works well with node and I dont have chance to work with it that much, I am always using SQS and Kafka on projects. For product service I created controller, service, repository layers.
+
+If i was doing it all over again I would maybe change some stuff. I would maybe handle prisma diferently, would maybe extract it in different package and then use it in both services. This way we are copying client to other servie which is okay, but for example in schema we needed to add binaryTargets because of that. Similarly maybe with redis. I also had issue with rabbitmq because it takes a lot of time to boot and then services fail because they depend on it. I think I had same issue with that 2 or 3 years ago, I built almost same application, its on my Github I can show it later, that helped me to remember so I added some conditions like depends on and healthchecks in docker compose. Also regarding scaling of review-processing-service I think it can be done in multiple ways, the way I have done it with container replicas, with node Cluster module or in some way with worker threads, not sure If this solution is what was looked for.
+
+Regarding next steps here I would add some unit and integration testing with jest and supertest, I would create ci cd pipeline to run test, build code, etc..In the end maybe we can add some UI to this as some dashboard.
+
+Wanted to mention that I have used Cursor for some stuff like creating seeds to populate db, adding nice logs with emojis since its little hard to track logs in container, this way I clearly see what has been done and also for generating readme docs.
+
+In the end, as I said I would maybe change some things and proceed with some new one mentioned, but what is improtant is that we have working solution. Let me know what you think!
+
 ## 🏗️ Architecture Overview
 
 This application consists of two services working together:
