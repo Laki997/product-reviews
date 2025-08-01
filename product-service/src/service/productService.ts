@@ -1,10 +1,23 @@
 import { ProductRepository } from "../repository/productRepository";
 import { ProductWithAverageRating } from "../types";
+import { CacheService } from "./cacheService";
 
 export class ProductService {
-  constructor(private productRepository: ProductRepository) {}
+  constructor(
+    private productRepository: ProductRepository,
+    private cacheService: CacheService
+  ) {}
 
   async getAllProducts(): Promise<ProductWithAverageRating[]> {
+    const cacheKey = "products:all";
+
+    const cached = await this.cacheService.get<ProductWithAverageRating[]>(
+      cacheKey
+    );
+    if (cached) {
+      console.log("📦 Returning cached products");
+      return cached;
+    }
     const products = await this.productRepository.findAll();
 
     const productsWithRatings = await Promise.all(
@@ -20,18 +33,35 @@ export class ProductService {
       })
     );
 
+    await this.cacheService.set(cacheKey, productsWithRatings, 900);
+    console.log("💾 Cached products");
     return productsWithRatings;
   }
 
   async getProductById(id: string): Promise<ProductWithAverageRating> {
+    const cacheKey = `product:${id}`;
+
+    const cached = await this.cacheService.get<ProductWithAverageRating>(
+      cacheKey
+    );
+    if (cached) {
+      console.log(`📦 Returning cached product ${id}`);
+      return cached;
+    }
+
     const product = await this.productRepository.findById(id);
     const averageRating = await this.productRepository.getAverageRating(id);
 
-    return {
+    const productWithRating = {
       ...product,
       price: Number(product.price),
       averageRating,
     };
+
+    await this.cacheService.set(cacheKey, productWithRating, 3600);
+    console.log(`💾 Cached product ${id}`);
+
+    return productWithRating;
   }
 
   async createProduct(data: {

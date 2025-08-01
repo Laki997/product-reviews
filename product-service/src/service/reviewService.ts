@@ -1,15 +1,30 @@
 import { EventPublisher } from "../events.ts/publisher";
 import { ReviewRepository } from "../repository/reviewRepository";
 import { ReviewEvent } from "../types";
+import { CacheService } from "./cacheService";
 
 export class ReviewService {
   constructor(
     private reviewRepository: ReviewRepository,
-    private eventPublisher: EventPublisher
+    private eventPublisher: EventPublisher,
+    private cacheService: CacheService
   ) {}
 
   async getProductReviews(productId: string) {
-    return this.reviewRepository.findByProductId(productId);
+    const cacheKey = `reviews:${productId}`;
+
+    const cached = await this.cacheService.get(cacheKey);
+    if (cached) {
+      console.log(`📦 Returning cached reviews for product ${productId}`);
+      return cached;
+    }
+
+    const reviews = await this.reviewRepository.findByProductId(productId);
+
+    await this.cacheService.set(cacheKey, reviews, 1800);
+    console.log(`�� Cached reviews for product ${productId}`);
+
+    return reviews;
   }
 
   async getReviewById(id: string) {

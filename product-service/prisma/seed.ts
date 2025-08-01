@@ -1,4 +1,4 @@
-import { PrismaClient, Review } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -91,7 +91,7 @@ async function main() {
 
   console.log(`✅ Created ${products.length} products`);
 
-  const reviews: Review[] = [];
+  const reviews: any[] = [];
 
   for (const product of products) {
     const reviewCount = Math.floor(Math.random() * 3) + 2;

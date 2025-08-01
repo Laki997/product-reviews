@@ -21,7 +21,9 @@ export class AverageRatingService {
 
       await this.updateProductAverageRating(event.productId, averageRating);
 
-      await this.updateCache(event.productId, averageRating);
+      await this.updateProductCache(event.productId, averageRating);
+
+      await this.updateReviewsCache(event.productId);
 
       console.log(
         `📊 Updated average rating for product ${event.productId}: ${averageRating}`
@@ -53,7 +55,10 @@ export class AverageRatingService {
     });
   }
 
-  private async updateCache(productId: string, averageRating: number | null) {
+  private async updateProductCache(
+    productId: string,
+    averageRating: number | null
+  ) {
     const cacheKey = `product:${productId}`;
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
@@ -67,5 +72,15 @@ export class AverageRatingService {
 
       await this.redis.setEx(cacheKey, 3600, JSON.stringify(productWithRating));
     }
+  }
+
+  private async updateReviewsCache(productId: string) {
+    const cacheKey = `reviews:${productId}`;
+    const reviews = await this.prisma.review.findMany({
+      where: { productId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    await this.redis.setEx(cacheKey, 1800, JSON.stringify(reviews));
   }
 }

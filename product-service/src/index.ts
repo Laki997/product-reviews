@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 import productRoutes from "./routes/productRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import { AppError } from "./utils/errors";
-import { prisma } from "./prisma";
 import { EventPublisher } from "./events.ts/publisher";
 
 dotenv.config();
